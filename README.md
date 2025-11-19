@@ -9,6 +9,56 @@ _Designed & implemented by **Samarth S Shetty**_
 
 ---
 
+## 📥 Cloning This Repository
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/<YOUR_USERNAME>/ticket-triage-agent.git
+```
+
+### 2. Enter the project directory
+```bash
+cd ticket-triage-agent
+```
+
+### 3. Create environment & install dependencies
+
+#### Using uv (recommended)
+```bash
+uv venv
+uv pip install -r requirements.txt
+```
+
+#### Using pip
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Linux/Mac
+.venv\Scripts\activate      # Windows PowerShell
+
+pip install -r requirements.txt
+```
+
+### 4. Set up environment variables
+```bash
+cp .env.example .env
+```
+
+Add your API key:
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+### 5. Run the development server
+```bash
+uvicorn app.main:app --reload
+```
+
+### 6. Access UI & API docs
+- http://127.0.0.1:8000/ui
+- http://127.0.0.1:8000/docs
+
+---
+
 ## 🚀 Overview
 
 This project implements a production-ready **AI Support Ticket Triage Agent**, developed for the **AI Engineer (Agents & Production)** role assignment.
