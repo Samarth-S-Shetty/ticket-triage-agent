@@ -1,5 +1,11 @@
 # Ticket Triage Agent — AI-Powered Support Automation  
 _Designed & implemented by **Samarth S Shetty**_
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688?logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-API-green?logo=openai&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)
 
 ---
 
