@@ -24,7 +24,7 @@ The agent:
 
 Below is the core workflow of the system:
 
-![Workflow Diagram](images/workflow.png)
+![Ticket Processing Flowchart](assets/flowchart.svg)
 
 ### **How the workflow operates**
 1. **User submits a support ticket** from the UI or API.  
