@@ -7,59 +7,10 @@ _Designed & implemented by **Samarth S Shetty**_
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 ![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen)
 
----
 
-## 📥 Cloning This Repository
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/Samarth-S-Shetty/ticket-triage-agent
-```
 
-### 2. Enter the project directory
-```bash
-cd ticket-triage-agent
-```
-
-### 3. Create environment & install dependencies
-
-#### Using uv (recommended)
-```bash
-uv venv
-uv pip install -r requirements.txt
-```
-
-#### Using pip
-```bash
-python -m venv .venv
-source .venv/bin/activate   # Linux/Mac
-.venv\Scripts\activate      # Windows PowerShell
-
-pip install -r requirements.txt
-```
-
-### 4. Set up environment variables
-```bash
-cp .env.example .env
-```
-
-Add your API key:
-```env
-OPENAI_API_KEY=your_api_key_here
-```
-
-### 5. Run the development server
-```bash
-uvicorn app.main:app --reload
-```
-
-### 6. Access UI & API docs
-- http://127.0.0.1:8000/ui
-- http://127.0.0.1:8000/docs
-
----
-
-## 🚀 Overview
+#  Overview
 
 This project implements a production-ready **AI Support Ticket Triage Agent**, developed for the **AI Engineer (Agents & Production)** role assignment.
 
@@ -73,7 +24,7 @@ The system demonstrates real-world production thinking by combining:
 
 ---
 
-# 🧠 System Workflow (High-Level Architecture)
+#  System Workflow (High-Level Architecture)
 
 ![Ticket Processing Flowchart](images/workflow.png)
 
@@ -123,10 +74,141 @@ Embeddings capture meaning, not literal wording:
 
 Embeddings increase accuracy without increasing cost.
 
-This design shows production-level optimization:  
+This design shows production-level optimisation:  
 **LLMs for intelligence, embeddings for speed + scale.**
 
 ---
+
+
+#  Cloning This Repository
+
+## **Method 1: Standard Git Clone**
+### 1. Clone the repository
+```bash
+git clone https://github.com/Samarth-S-Shetty/ticket-triage-agent
+```
+
+### 2. Enter the project directory
+```bash
+cd ticket-triage-agent
+```
+
+---
+
+## **Method 2: Clone via VS Code (Easiest)**
+
+### 1. Open VS Code Command Palette  
+```
+Ctrl + Shift + P
+```
+
+### 2. Type:
+```
+Git: Clone
+```
+
+### 3. Paste the GitHub URL  
+```
+https://github.com/Samarth-S-Shetty/ticket-triage-agent
+```
+
+### 4. Choose a local folder  
+
+### 5. Click:
+```
+Open cloned repository?
+```
+---
+
+# Installation & Running
+### 1. Create environment & install dependencies
+
+#### Using uv (recommended)
+```bash
+uv venv
+uv pip install -r requirements.txt
+```
+
+#### Using pip
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Linux/Mac
+.venv\Scripts\activate      # Windows PowerShell
+
+pip install -r requirements.txt
+```
+
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+```
+
+Add your API key:
+```env
+OPENAI_API_KEY=your_api_key_here
+```
+
+## 3.Run Command (using UV)
+```bash
+
+uvicorn app.main:app --reload
+```
+
+###  Run Command (using pip)
+```bash
+
+uvicorn app.main:app --reload
+```
+
+---
+
+# 🌐 Access UI
+### 🖥 How to Use the Web UI
+
+Once the server is running, open:
+
+
+```
+http://127.0.0.1:8000/ui
+
+```
+This simple HTML interface allows you to:
+
+- Enter a ticket description  
+- Submit it directly to the backend  
+- View the triage response on-screen  
+
+The UI is intentionally minimal — it exists to demonstrate usability and quick manual testing.
+
+
+# 📘 API Docs
+### 📘 How to Use the Interactive API Docs
+
+FastAPI automatically generates API documentation.
+
+Visit:
+```
+http://127.0.0.1:8000/docs
+```
+Here you can:
+
+- See all routes  
+- Try the `/triage` endpoint interactively  
+- View request/response models  
+- Test different inputs without Postman  
+
+This is extremely useful for debugging and demonstrating the backend.
+
+---
+
+# 💻 Curl Example
+```bash
+curl -X POST http://127.0.0.1:8000/triage      -H "Content-Type: application/json"      -d '{"description": "Account locked after failed attempts"}'
+```
+
+
+---
+
 
 # 📝 Feature Showcase (UI Demo)
 
@@ -173,6 +255,37 @@ This ensures **continuous usefulness**, even for issues not in KB.
   - next_action  
 
 This demonstrates the API’s clean, production-ready interface.
+### 🔎 How to Test with Postman
+
+Follow these steps to test the triage API using Postman:
+
+1. **Open Postman**
+2. Click **New → HTTP Request**
+3. Select **POST**
+4. Enter the API URL:
+```Arduino
+    http://127.0.0.1:8000/triage
+```
+5. Go to the **Body** tab  
+6. Select **raw**  
+7. Change the format to **JSON**  
+8. Paste a ticket description, for example:
+```json
+ {
+  "description": "I am not receiving password reset emails."
+  }
+```
+9. Click **Send**
+
+You will receive a structured JSON response containing:
+- summary  
+- category  
+- severity  
+- match_type  
+- kb_matches (only for known issues)  
+- next_action
+
+This lets you manually verify the API behaviour live while the app is running.
 
 ---
 
@@ -230,52 +343,26 @@ ticket-triage-agent/
 └── README.md
 ```
 
----
-
-# ⚙️ Installation & Running
-
-## Using uv (recommended)
-```bash
-uv venv
-uv pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
-## Using pip
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-
----
-
-# 🌐 Access UI
-```
-http://127.0.0.1:8000/ui
-```
-
-# 📘 API Docs
-```
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 💻 Curl Example
-```bash
-curl -X POST http://127.0.0.1:8000/triage      -H "Content-Type: application/json"      -d '{"description": "Account locked after failed attempts"}'
-```
 
 ---
 
 # 🧪 Testing
+### &ensp; How to Run Tests
+
+Tests are located in the `tests/` folder and cover:
+
+- Health check  
+- Triage endpoint response shape  
+- Known issue classification  
+- New issue handling  
+- Error handling (empty descriptions)
+
+Run all tests using:
+
 ```bash
 pytest -q
 ```
-
----
+The tests ensure that the API behaves correctly and that future changes do not break core functionality.
 
 # 📦 Docker Support
 
