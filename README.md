@@ -13,7 +13,7 @@ _Designed & implemented by **Samarth S Shetty**_
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<YOUR_USERNAME>/ticket-triage-agent.git
+git clone https://github.com/Samarth-S-Shetty/ticket-triage-agent
 ```
 
 ### 2. Enter the project directory
