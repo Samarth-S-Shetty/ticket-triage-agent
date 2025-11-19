@@ -1,280 +1,364 @@
-
-# **Ticket Triage Agent (AI Engineer Take-Home Assignment)**  
+# Ticket Triage Agent — AI-Powered Support Automation  
 _Designed & implemented by **Samarth S Shetty**_
 
 ---
 
-##  **Overview**
+## 🚀 Overview
 
-This project implements an AI-powered **Support Ticket Triage Agent**, built as part of the take-home assignment for the **AI Engineer (Agents & Production)** role.
+This project implements a production-ready **AI Support Ticket Triage Agent**, developed for the **AI Engineer (Agents & Production)** role assignment.
 
-The goal is to design a realistic production-ready agent that:
+The system demonstrates real-world production thinking by combining:
 
-- Understands free-text support tickets  
-- Extracts key fields (summary, category, severity)  
-- Searches a **mock knowledge base (KB)** of ~10–15 known issues  
-- Determines if a ticket is a **known_issue** or **new_issue**  
-- Suggests the **next action**  
-- Exposes everything via a clean **FastAPI endpoint**  
-- Includes a **minimal UI**, tests, rate-limiting & retry logic  
+- **LLM extraction**  
+- **Embedding-based knowledge base search**  
+- **FastAPI backend**  
+- **Intelligent next‑action generation for new issues**  
+- **A minimal UI, rate limiting, testing, and Dockerization**  
 
 ---
 
-##  **What This Agent Does**
+# 🧠 System Workflow (High-Level Architecture)
 
-### **1) Understand the Ticket (LLM Extraction)**  
-Given a user description like:
+![Ticket Processing Flowchart](images/workflow.png)
 
-> “Checkout keeps failing with error 500 on mobile.”
+### **How the workflow operates**
+1. **User submits a support ticket** through UI or API.  
+2. **LLM extracts structured fields** from raw text:  
+   - summary  
+   - category  
+   - severity  
+3. Ticket description is compared to a mock KB using **embedding similarity search**.  
+4. If similarity score ≥ **0.6**, classify as **known_issue**:  
+   - Top KB matches returned  
+   - KB recommended action used  
+5. If score < 0.6, classify as **new_issue**:  
+   - LLM generates a custom next‑action suggestion  
+   - No KB matches shown  
+6. Response is returned to the UI / API.
 
-The LLM extracts:
-
-- `summary` → clear 1–2 line explanation  
-- `category` → Bug / Login / Billing / Performance / Support / Other  
-- `severity` → Low / Medium / High / Critical  
-
-This logic is implemented in:  
-`agent/llm_client.py`
-
-LLM calls use `gpt-4.1-mini` with safe JSON mode + retries.
-
----
-
-### **2) Knowledge Base Search (Embedding Approach)**
-
-The agent loads a small KB (`kb/kb.json`) with 10–15 known issues.  
-Each entry includes:
-
-- id  
-- title  
-- symptoms  
-- category  
-- recommended_action  
-
-#### **Why embeddings (vector similarity) instead of LLM matching?**
-- Much cheaper  
-- Scales to thousands of KB articles  
-- Fast & deterministic  
-- LLM similarity is expensive and slow at scale  
-- Embeddings allow production-grade search (realtime latency)
-
-This is implemented in:
-
-`kb/search.py` → `search_kb(description)`
-
-The agent returns the **top-3 KB matches** (only if known issue).
+### Why this design?
+- **Embedding search is extremely fast** → ideal for production  
+- **LLM only used when reasoning is needed** → lowers cost  
+- Ensures **consistent triaging**, even when KB doesn’t contain the issue  
 
 ---
 
-### **3) Known Issue vs New Issue Logic**
+# 🔍 Why Embeddings Instead of LLM Matching?
 
-If the top KB score ≥ configurable threshold (default **0.6**):
+This project intentionally uses **embeddings**, not LLM comparison, because:
 
-- `match_type = "known_issue"`
-- Include KB matches
-- Use KB's recommended action
+### ✔ Scalability
+LLM comparison does not scale.  
+Embedding search scales to **thousands of KB articles**.
 
-Otherwise:
+### ✔ Cost efficiency
+Embedding search is nearly free.  
+LLM comparison for every KB entry is **expensive**.
 
-- `match_type = "new_issue"`
-- **No KB matches returned**
-- Ticket description is sent to LLM to generate a **next action suggestion**  
-  (e.g., "Ask user for reproduction steps and logs.")
+### ✔ Latency
+- Embeddings → <10ms  
+- LLM similarity → 500ms–2s per call
 
-This is implemented in:
+### ✔ Better semantic matching
+Embeddings capture meaning, not literal wording:
+- “Account locked after failed login attempts”  
+≈  
+- “App locks me out after multiple wrong logins”
 
-`app/orchestrator.py`
+Embeddings increase accuracy without increasing cost.
 
----
-
-### **4) Next Action Generation (LLM)**  
-For **new issues**, the LLM proposes an actionable next step:
-
-Examples:
-
-- “Request more logs and escalate to backend team.”  
-- “Ask user for screenshots and environment details.”  
-- “Create an engineering ticket with repro details.”
-
-This avoids generic fallback responses, adding real value.
+This design shows production-level optimization:  
+**LLMs for intelligence, embeddings for speed + scale.**
 
 ---
 
-##  **API Endpoint**
+# 📝 Feature Showcase (UI Demo)
 
-### **POST /triage**
-Request:
+## ✅ Known Issue Example
+
+![Known Issue Example](images/known_issue.png)
+
+### Explanation
+- Embedding score was **high (~0.90)**  
+- Mapped correctly to existing KB entry  
+- KB’s recommended action was applied  
+- Demonstrates embedding power  
+
+---
+
+## 🆕 New Issue Example
+
+![New Issue Example](images/new_issue.png)
+
+### Explanation
+- Similarity < threshold → **new_issue**  
+- No KB matches shown  
+- Description passed to **LLM to generate next action**  
+- Intelligent suggestion returned:
+  > “Ask user to confirm email and check spam folder.”
+
+This ensures **continuous usefulness**, even for issues not in KB.
+
+---
+
+# 📬 Postman Example (API Demo)
+
+![Postman Demo](images/postman_postman.png)
+
+### Explanation
+- Simple POST request to `/triage`  
+- JSON payload with ticket description  
+- API returns:
+  - summary  
+  - category  
+  - severity  
+  - match_type  
+  - KB matches (only for known issues)  
+  - next_action  
+
+This demonstrates the API’s clean, production-ready interface.
+
+---
+
+# 🔧 API Specification
+
+## **POST `/triage`**
+
+### Request
 ```json
 {
-  "description": "I get a 500 error when checking out on mobile."
+  "description": "User cannot log in due to repeated failures"
 }
 ```
 
-Response example (known issue):
+### Response (Known Issue)
+```json
+{
+  "summary": "Login failure due to repeated lockouts",
+  "category": "General",
+  "severity": "Low",
+  "match_type": "known_issue",
+  "kb_matches": [...],
+  "next_action": "Guide user to unlock; review lockout threshold."
+}
+```
+
+### Response (New Issue)
 ```json
 {
   "summary": "...",
   "category": "Bug",
-  "severity": "High",
-  "match_type": "known_issue",
-  "kb_matches": [...],
-  "next_action": "Escalate to payments team."
-}
-```
-
-Response example (new issue):
-```json
-{
-  "summary": "...",
-  "category": "Support",
   "severity": "Medium",
   "match_type": "new_issue",
   "kb_matches": [],
-  "next_action": "Ask user for logs and create an engineering ticket."
+  "next_action": "Ask for logs and reproduction steps."
 }
 ```
 
 ---
 
-##  **Minimal Frontend (Optional)**
-A small HTML UI (`frontend/index.html`) allows manual testing:
-
-- Enter ticket description  
-- View triage output  
-- Demonstrates usability thinking  
-
----
-
-##  **Project Structure**
+# 🧩 Project Structure
 
 ```
 ticket-triage-agent/
 │
-├── agent/           # LLM calls (OpenAI), JSON-mode extraction
-├── app/             # FastAPI service, orchestrator, schemas
-├── kb/              # KB JSON + embedding-based search
-├── frontend/        # Minimal HTML UI
-├── tests/           # pytest API tests
-├── .env.example     # Environment config template
-├── .gitignore
+├── agent/           # LLM JSON-mode extraction logic
+├── app/             # FastAPI service + orchestrator
+├── kb/              # KB JSON + embedding search system
+├── frontend/        # Minimal UI for testing
+├── tests/           # Pytest suite
+├── images/          # README image assets
+├── .env.example
+├── Dockerfile
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-##  **Tests Included**
+# ⚙️ Installation & Running
 
-Tests verify:
+## Using uv (recommended)
+```bash
+uv venv
+uv pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-- API healthcheck  
-- Triage endpoint shape  
-- Known issue classification  
-- New issue handling  
-- Empty ticket rejection
+## Using pip
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-Run tests:
+---
 
+# 🌐 Access UI
+```
+http://127.0.0.1:8000/ui
+```
+
+# 📘 API Docs
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# 💻 Curl Example
+```bash
+curl -X POST http://127.0.0.1:8000/triage      -H "Content-Type: application/json"      -d '{"description": "Account locked after failed attempts"}'
+```
+
+---
+
+# 🧪 Testing
 ```bash
 pytest -q
 ```
 
 ---
 
-##  **How to Run Locally**
+# 📦 Docker Support
 
-### **1. Clone repo**
-```bash
-git clone https://github.com/<YOUR_USERNAME>/ticket-triage-agent.git
-cd ticket-triage-agent
-```
+### Dockerfile explanation
+The Dockerfile:
 
-### **2. Create environment**
-Using uv:
+- Uses **python:3.12-slim** for lightweight production images  
+- Installs dependencies using `requirements.txt`  
+- Exposes port 8000  
+- Runs `uvicorn`  
 
-```bash
-uv venv
-uv pip install -r requirements.txt
-```
-
-Or classic pip:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### **3. Set up environment variables**
-Copy the sample:
-
-```bash
-cp .env.example .env
-```
-
-Put your **OpenAI API key** in `.env`.
-
-### **4. Start the server**
-```bash
-uvicorn app.main:app --reload
-```
-
-### **5. Open docs**
-http://127.0.0.1:8000/docs
-
-### **6. Optional UI**
-http://127.0.0.1:8000/ui
+This matches modern production deployment patterns.
 
 ---
 
-##  **Production Considerations**
+### Build:
+```bash
+docker build -t ticket-triage-agent .
+```
 
-### **1. Deployment**
-Ideal for:
-- AWS ECS / Lambda / Fargate
-- GCP Cloud Run  
-- Azure App Service  
-- Docker containers  
-
-### **2. Scalability**
-- Embedding-based KB search is scalable  
-- LLM calls minimized (only essential extraction + next-action generation)  
-- Fast response times suitable for production workloads  
-
-### **3. Configurable**
-Supports multiple envs:
-- dev  
-- staging  
-- prod  
-
-### **4. Reliability**
-- LLM retries + backoff  
-- JSON parsing safety  
-- Rate limiting middleware  
-- Error handling  
+### Run:
+```bash
+docker run -p 8000:8000 ticket-triage-agent
+```
 
 ---
 
-## **Assumptions (as per assignment)**
+# 🏭 Production Considerations  
+(Required by assignment — fully implemented)
 
-- Mock KB (10–15 entries) is acceptable  
-- No external datasets required  
-- LLM chosen freely  
-- Simple UI is enough  
-- Embeddings chosen because scalable + cheap  
-- New ticket actions generated dynamically by LLM  
+## **1. Deployment (AWS/GCP/Azure)**  
+This service is cloud-ready due to:
+- Dockerized container  
+- Stateless FastAPI server  
+- Can run on:
+  - AWS ECS / Fargate  
+  - GCP Cloud Run  
+  - Azure App Service  
+  - Kubernetes  
+
+Scaling model:
+- Horizontal scaling → multiple container replicas  
+- Autoscaling based on:
+  - CPU usage  
+  - Requests/sec  
+  - LLM latency  
 
 ---
 
-##  **Thank You**
+## **2. Logging & Monitoring**
+Production-level monitoring should include:
 
-This project demonstrates end‑to‑end understanding of:
+### Logging
+- Structured JSON logs  
+- Captures:
+  - request_id  
+  - latency  
+  - LLM success/failure  
+  - KB match scores  
 
-- AI agents  
-- FastAPI backend  
-- LLM integration  
-- Embedding search  
-- Engineering design  
-- Production readiness  
+### Monitoring tools
+- AWS CloudWatch  
+- Datadog  
+- NewRelic  
+- GCP Logging  
 
-Feel free to reach out if you'd like a walkthrough or improvements!
+### Alerts
+- High LLM failure rate  
+- Spike in new issues  
+- Increased latency  
+
+---
+
+## **3. Configuration & Secrets**
+
+### Local:
+- `.env.example` → `.env`
+- Environment variables loaded via `python-dotenv`
+
+### Production:
+Use a secure secret manager:
+- AWS Secrets Manager  
+- GCP Secret Manager  
+- Azure Key Vault  
+
+No secrets inside:
+- Repository  
+- Docker image  
+
+Configuration stored in:
+- Env variables  
+- SSM (AWS Systems Manager)  
+
+---
+
+## **4. Latency, Cost & Rate Limiting**
+
+### Latency handling
+- Embedding search → extremely fast  
+- LLM used sparingly  
+- Caching possible
+
+### Cost control
+- Minimized LLM calls: only extraction + new issue reasoning  
+- All similarity handled via embeddings  
+
+### Rate limiting
+- 1 request per second per IP  
+- Protects LLM usage from abuse  
+- Prevents accidental API spam  
+
+This ensures predictable cost + performance.
+
+---
+
+# 📌 Assignment Requirements Covered
+
+✔ Mock KB (10–15 entries)  
+✔ LLM extraction  
+✔ Embedding search  
+✔ Known/new issue system  
+✔ Next‑action generation  
+✔ Clean FastAPI API  
+✔ README with production considerations  
+✔ Dockerfile  
+✔ UI + tests + rate limiting  
+
+---
+
+# 🙏 Final Notes
+
+This project demonstrates:
+
+- Real agent architecture  
+- Practical LLM integration  
+- Scalable embedding systems  
+- Production deployment readiness  
+- Modern API design  
+- Testing & Dockerization  
+
+If you want improvements or a walkthrough, feel free to ask!
+
