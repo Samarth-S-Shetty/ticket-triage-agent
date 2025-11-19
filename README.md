@@ -479,6 +479,54 @@ Configuration stored in:
 This ensures predictable cost + performance.
 
 ---
+# 📌 Assumptions
+
+The assignment description allowed freedom in tooling and asked to state assumptions clearly.  
+Here are the key assumptions made during implementation:
+
+### **1. OpenAI API Only**
+This project currently supports **OpenAI models only** (e.g., `gpt-4.1-mini`) for:
+- Field extraction  
+- Next-action generation  
+
+No alternative providers (Anthropic, Gemini, HuggingFace, etc.) are integrated, since the assignment emphasized the ability to choose any LLM.
+
+### **2. Embeddings vs LLM Similarity**
+I assumed that **embedding-based KB search** is more realistic for production than LLM-based semantic comparison, so:
+- Embedding vectors power KB matching  
+- LLM is used only for reasoning tasks  
+- This matches real-world scalable architectures
+
+### **3. Mock KB Is Sufficient**
+As instructed, I created a **small JSON knowledge base (10–15 entries)**.  
+No external datasets were used or required.
+
+### **4. Simplified Severity/Category Schema**
+The assignment did not mandate a strict taxonomy, so I defined:
+- Categories: `bug`, `login`, `billing`, `performance`, `support`, `general`, `other`  
+- Severity: `low`, `medium`, `high`, `critical`
+
+### **5. New Issue = No KB Matches**
+If no KB entry crosses the similarity threshold (default: `0.6`):
+- The issue is treated as **new**,  
+- No KB matches are shown,  
+- LLM generates a next step.
+
+This aligns with the assignment’s requirement to distinguish known vs unknown issues.
+
+### **6. Local Deployment Only (Production Notes Included Separately)**
+The running instructions target **local development**.  
+A dedicated “Production Considerations” section outlines how this service *would* be deployed (AWS/GCP/Azure).
+
+### **7. UI Is Optional**
+The UI was not mandatory, but I added a simple HTML frontend for better demonstration.
+
+### **8. Rate Limiting**
+A lightweight **1 request/sec** per-IP limiter was added based on the instruction to show "basic protection" and production awareness.
+
+
+---
+
 
 # 📌 Assignment Requirements Covered
 
