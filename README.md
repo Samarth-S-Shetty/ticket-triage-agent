@@ -180,6 +180,8 @@ This simple HTML interface allows you to:
 
 The UI is intentionally minimal — it exists to demonstrate usability and quick manual testing.
 
+Please referesh once if you get internal server error.
+
 
 # 📘 API Docs
 ### 📘 How to Use the Interactive API Docs
