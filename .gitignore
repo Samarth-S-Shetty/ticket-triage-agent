@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.env
+uv.lock
+kb/embeddings.json
+.vscode/

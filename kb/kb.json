@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ISSUE-101",
+    "title": "Checkout error 500 on mobile",
+    "category": "Bug",
+    "symptoms": ["500 error", "checkout", "mobile payment", "payment failure"],
+    "recommended_action": "Escalate to Payments team; collect logs; check mobile payment gateway."
+  },
+  {
+    "id": "ISSUE-102",
+    "title": "Password reset email not received",
+    "category": "Bug",
+    "symptoms": ["password reset", "email not received", "reset link missing", "smtp delay"],
+    "recommended_action": "Ask user to check spam; verify email service logs; retry sending reset email."
+  },
+  {
+    "id": "ISSUE-103",
+    "title": "Double payment charged",
+    "category": "Billing",
+    "symptoms": ["double charge", "duplicate payment", "charged twice"],
+    "recommended_action": "Escalate to Finance; refund duplicate amount; investigate idempotency keys."
+  },
+  {
+    "id": "ISSUE-104",
+    "title": "Image upload fails for large files",
+    "category": "Bug",
+    "symptoms": ["upload error", "file too large", "timeout", "image upload failing"],
+    "recommended_action": "Request user to compress the file; check server upload limit and timeout settings."
+  },
+  {
+    "id": "ISSUE-105",
+    "title": "Promo code not applying",
+    "category": "Support",
+    "symptoms": ["promo invalid", "coupon not working", "discount not applied"],
+    "recommended_action": "Verify promo validity; check expiration; test promo backend logic."
+  },
+  {
+    "id": "ISSUE-106",
+    "title": "Account locked after failed login attempts",
+    "category": "Security",
+    "symptoms": ["account locked", "failed login attempts", "cannot login"],
+    "recommended_action": "Guide user to unlock; review lockout threshold; check suspicious access patterns."
+  },
+  {
+    "id": "ISSUE-107",
+    "title": "Order stuck in processing",
+    "category": "Bug",
+    "symptoms": ["order stuck", "processing state", "no shipping update", "webhook failed"],
+    "recommended_action": "Retry webhook; inspect logs; fix background job queue."
+  },
+  {
+    "id": "ISSUE-108",
+    "title": "Dashboard loading slowly",
+    "category": "Performance",
+    "symptoms": ["slow dashboard", "slow ui", "long loading time"],
+    "recommended_action": "Analyze frontend performance; optimize queries; add caching."
+  },
+  {
+    "id": "ISSUE-109",
+    "title": "2FA SMS code delayed",
+    "category": "Security",
+    "symptoms": ["sms delay", "otp not received", "2fa not working"],
+    "recommended_action": "Check SMS provider; retry sending; recommend authenticator app."
+  },
+  {
+    "id": "ISSUE-110",
+    "title": "Subscription cancellation failing",
+    "category": "Billing",
+    "symptoms": ["cannot cancel subscription", "cancellation error", "subscription active after cancel"],
+    "recommended_action": "Cancel manually; check subscription API logs; verify idempotent actions."
+  }
+]

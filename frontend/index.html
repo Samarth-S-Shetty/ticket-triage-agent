@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Triage Agent — Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f7f9fb;
+      --card: #ffffff;
+      --border: #e3e6ea;
+      --text: #111;
+      --muted: #666;
+      --accent: #2563eb;
+      --kb-bg: #f0f3f8;
+      --error: #d93025;
+    }
+    body.dark {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --kb-bg: #28354a;
+      --error: #ef4444;
+    }
+
+    body {
+      font-family: system-ui, Segoe UI, Roboto, Arial;
+      margin: 24px auto;
+      max-width: 900px;
+      background: var(--bg);
+      color: var(--text);
+      transition: all .2s ease;
+    }
+
+    h2 { margin-bottom: 4px; }
+    .muted { color: var(--muted); font-size: 14px; }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      margin-top: 10px;
+      transition: 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+
+    #copyJson {
+      background: #64748b;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 16px;
+      border-radius: 10px;
+      margin-top: 20px;
+      box-shadow: 0px 2px 5px rgba(0,0,0,0.04);
+    }
+
+    .kb-item {
+      background: var(--kb-bg);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    pre {
+      background: var(--kb-bg);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .spinner { 
+      width: 22px;
+      height: 22px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="theme-toggle" id="themeToggle">🌙 Dark</div>
+
+  <h2>Support Ticket Triage — Demo</h2>
+  <p class="muted">Paste a ticket description, or choose a sample below.</p>
+
+  <select id="samples" style="padding:8px;border-radius:6px;margin-bottom:10px;">
+    <option value="">Choose a sample ticket…</option>
+    <option>I get a 500 error when trying to pay on mobile.</option>
+    <option>I did not get my password reset email.</option>
+    <option>The dashboard is loading extremely slow today.</option>
+    <option>I was charged twice for one order.</option>
+  </select>
+
+  <textarea id="desc" placeholder="Describe the issue…"></textarea>
+
+  <div>
+    <button id="btn">🔍 Triage</button>
+    <button id="copyJson">📋 Copy JSON</button>
+  </div>
+
+  <div id="out" class="card" style="display:none"></div>
+
+  <script>
+    const out = document.getElementById("out");
+    const btn = document.getElementById("btn");
+    const copyBtn = document.getElementById("copyJson");
+    const samples = document.getElementById("samples");
+    const themeToggle = document.getElementById("themeToggle");
+    let lastJson = null;
+
+    samples.onchange = () => {
+      document.getElementById("desc").value = samples.value;
+    };
+
+    themeToggle.onclick = () => {
+      document.body.classList.toggle("dark");
+      themeToggle.textContent = document.body.classList.contains("dark")
+        ? "☀️ Light"
+        : "🌙 Dark";
+    };
+
+    btn.onclick = async () => {
+      out.style.display = "block";
+      out.innerHTML = '<div class="spinner"></div> <span class="muted">Processing…</span>';
+
+      const description = document.getElementById("desc").value.trim();
+      if (!description) {
+        out.innerHTML = "<b>Please enter a ticket description.</b>";
+        return;
+      }
+
+      try {
+        const res = await fetch("/triage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description })
+        });
+
+        if (!res.ok) {
+          const t = await res.text();
+          out.innerHTML = `<b style="color:var(--error)">Error ${res.status}</b><pre>${escapeHtml(t)}</pre>`;
+          lastJson = null;
+          return;
+        }
+
+        const data = await res.json();
+        lastJson = data;
+        renderResult(data);
+      } catch (e) {
+        out.innerHTML = `<b style="color:var(--error)">Network error:</b> ${escapeHtml(e.message)}`;
+      }
+    };
+
+    copyBtn.onclick = () => {
+      if (!lastJson) return alert("No result to copy");
+      navigator.clipboard.writeText(JSON.stringify(lastJson, null, 2));
+      alert("Copied!");
+    };
+
+    function renderResult(d) {
+      const kbHtml = d.kb_matches?.length
+        ? d.kb_matches.map(k => `
+          <div class="kb-item">
+            <b>${escapeHtml(k.title)}</b> <span class="muted">(${k.id})</span><br/>
+            <span class="muted">Score:</span> ${Number(k.score).toFixed(2)}<br/>
+            <span class="muted">Action:</span> ${escapeHtml(k.recommended_action)}
+          </div>`).join("")
+        : "<em>No KB matches found.</em>";
+
+      out.innerHTML = `
+        <h3>Result</h3>
+        <b>Summary:</b> ${escapeHtml(d.summary)}<br/>
+        <b>Category:</b> ${escapeHtml(d.category)} &nbsp;&nbsp;
+        <b>Severity:</b> ${escapeHtml(d.severity)}<br/>
+        <b>Match type:</b> ${escapeHtml(d.match_type)}
+
+        <div style="margin-top:16px">
+          <h4>Next action</h4>
+          <div>${escapeHtml(d.next_action)}</div>
+        </div>
+
+        <div style="margin-top:16px">
+          <h4>KB Matches</h4>
+          ${kbHtml}
+        </div>
+
+        <details style="margin-top:16px">
+          <summary>Raw JSON</summary>
+          <pre>${escapeHtml(JSON.stringify(d, null, 2))}</pre>
+        </details>
+      `;
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, c => (
+        {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]
+      ));
+    }
+  </script>
+</body>
+</html>
